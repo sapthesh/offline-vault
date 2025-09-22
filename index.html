@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline Vault: Secure Password Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        /* Default Theme: Indigo Light */
+        --md-sys-color-primary: #3f51b5;
+        --md-sys-color-on-primary: #ffffff;
+        --md-sys-color-primary-container: #e8eaf6;
+        --md-sys-color-on-primary-container: #000c60;
+        --md-sys-color-secondary: #5c5f72;
+        --md-sys-color-on-secondary: #ffffff;
+        --md-sys-color-secondary-container: #e0e2fa;
+        --md-sys-color-on-secondary-container: #191c2b;
+        --md-sys-color-tertiary: #78536b;
+        --md-sys-color-on-tertiary: #ffffff;
+        --md-sys-color-tertiary-container: #ffd7ee;
+        --md-sys-color-on-tertiary-container: #2e1126;
+        --md-sys-color-error: #ba1a1a;
+        --md-sys-color-on-error: #ffffff;
+        --md-sys-color-error-container: #ffdad6;
+        --md-sys-color-on-error-container: #410002;
+        --md-sys-color-background: #fefbff;
+        --md-sys-color-on-background: #1b1b1f;
+        --md-sys-color-surface: #fefbff;
+        --md-sys-color-on-surface: #1b1b1f;
+        --md-sys-color-surface-variant: #e3e2e9;
+        --md-sys-color-on-surface-variant: #46464f;
+        --md-sys-color-outline: #777680;
+        --md-sys-color-shadow: #000000;
+        --md-sys-color-inverse-surface: #303034;
+        --md-sys-color-inverse-on-surface: #f2f0f4;
+        --md-sys-color-inverse-primary: #bec2ff;
+        --md-sys-color-surface-tint: #4348a3;
+
+        --md-elevation-1: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+        --md-elevation-2: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+        --md-elevation-3: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px rgba(0, 0, 0, 0.3);
+
+        --md-border-radius-xs: 4px;
+        --md-border-radius-sm: 8px;
+        --md-border-radius-md: 12px;
+        --md-border-radius-lg: 16px;
+        --md-border-radius-xl: 28px;
+        --md-border-radius-full: 9999px;
+      }
+
+      body {
+        font-family: 'Roboto', sans-serif;
+        background-color: var(--md-sys-color-background);
+        color: var(--md-sys-color-on-background);
+        margin: 0;
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+      
+      #root {
+        min-height: 100vh;
+      }
+      
+      /* Typography */
+      h1, .display-large { font-size: 57px; line-height: 64px; font-weight: 400; }
+      h2, .headline-medium { font-size: 28px; line-height: 36px; font-weight: 400; }
+      h3, .title-large { font-size: 22px; line-height: 28px; font-weight: 500; }
+      .title-medium { font-size: 16px; line-height: 24px; font-weight: 500; }
+      .label-large { font-size: 14px; line-height: 20px; font-weight: 500; }
+      .body-large { font-size: 16px; line-height: 24px; font-weight: 400; }
+      .body-medium { font-size: 14px; line-height: 20px; font-weight: 400; }
+      .body-small { font-size: 12px; line-height: 16px; font-weight: 400; }
+      
+      /* Select Component */
+      .select-container {
+        position: relative;
+        min-width: 150px;
+      }
+      .select-button {
+        width: 100%;
+        height: 48px;
+        padding: 0 16px;
+        background-color: var(--md-sys-color-surface-variant);
+        color: var(--md-sys-color-on-surface-variant);
+        border: none;
+        border-radius: var(--md-border-radius-xs);
+        text-align: left;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: inherit;
+        font-size: 16px;
+      }
+      .select-button span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .select-options {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        background-color: var(--md-sys-color-surface);
+        border-radius: var(--md-border-radius-xs);
+        box-shadow: var(--md-elevation-2);
+        list-style: none;
+        padding: 8px 0;
+        margin: 0;
+        z-index: 10;
+        max-height: 250px;
+        overflow-y: auto;
+      }
+      .select-option {
+        padding: 12px 16px;
+        cursor: pointer;
+        font-size: 16px;
+        color: var(--md-sys-color-on-surface);
+      }
+      .select-option:hover {
+        background-color: rgba(var(--md-sys-color-on-surface), 0.08);
+      }
+      .select-option[aria-selected="true"] {
+        background-color: var(--md-sys-color-primary-container);
+        color: var(--md-sys-color-on-primary-container);
+      }
+
+      /* Category Chip */
+      .category-chip {
+        display: inline-block;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1;
+        background-color: var(--md-sys-color-tertiary-container);
+        color: var(--md-sys-color-on-tertiary-container);
+        border-radius: var(--md-border-radius-sm);
+      }
+
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://aistudiocdn.com/react@^19.1.1",
+          "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+          "react/": "https://aistudiocdn.com/react@^19.1.1/"
+        }
+      }
+    </script>
+  <link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

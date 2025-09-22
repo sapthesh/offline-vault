@@ -1,0 +1,5 @@
+{
+  "name": "Offline Vault: Secure Password Manager",
+  "description": "A completely offline, self-hosted password manager that securely stores your passwords in your browser. All data is encrypted with a master password and never leaves your device.",
+  "requestFramePermissions": []
+}
