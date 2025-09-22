@@ -1,5 +1,22 @@
 
-# Offline Vault: A Secure, Browser-Based Password Manager
+<div align="center">
+  <h1 align="center">✨ Offline Vault: A Secure, Browser-Based Password Manager ✨</h1>
+</div>
+
+<div align="center">
+    
+  <!-- Dynamic Badges -->
+  <a href="https://github.com/sapthesh/offline-vault/stargazers">
+    <img src="https://img.shields.io/github/stars/sapthesh/offline-vault?style=for-the-badge&logo=github&color=b491ff&logoColor=white" alt="Stars">
+  </a>
+  <a href="https://github.com/sapthesh/offline-vault/network/members">
+    <img src="https://img.shields.io/github/forks/sapthesh/offline-vault?style=for-the-badge&logo=github&color=89c4f4&logoColor=white" alt="Forks">
+  </a>
+  <img src="https://img.shields.io/github/repo-size/sapthesh/offline-vault?style=for-the-badge&logo=github&color=ff69b4&logoColor=white" alt="Repo Size">
+  <img src="https://img.shields.io/github/last-commit/sapthesh/offline-vault?style=for-the-badge&logo=github&color=f4d03f&logoColor=white" alt="Last Commit">
+  <a href="https://hits.sh/github.com/sapthesh/offline-vaulta/"><img alt="Hits" src="https://hits.sh/github.com/sapthesh/offline-vault.svg?style=for-the-badge"/></a>
+  <a href="https://hits.sh/github.com/sapthesh/offline-vault/"><img alt="Hits" src="https://hits.sh/github.com/sapthesh/offline-vault.svg?view=today-total&style=for-the-badge&color=fe7d37"/></a>
+</div>
 
 **A completely offline, self-hosted password manager that securely stores your sensitive information directly in your browser. All data is encrypted with your master password and never leaves your device.**
 
