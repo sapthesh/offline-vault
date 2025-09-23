@@ -1,19 +1,24 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { themes } from '../themes';
 import Button from './common/Button';
 import IconButton from './common/IconButton';
 import Input from './common/Input';
-import type { PasswordEntry } from '../types';
+import type { PasswordEntry, Category } from '../types';
+import { CATEGORY_COLORS } from '../constants';
+import Select from './common/Select';
 
 interface SettingsScreenProps {
   onBack: () => void;
   entries: PasswordEntry[];
   persistEntries: (updatedEntries: PasswordEntry[]) => Promise<void>;
-  categories: string[];
-  onAddCategory: (name: string) => void;
-  onUpdateCategory: (oldName: string, newName: string) => void;
+  categories: Category[];
+  onAddCategory: (category: Category) => void;
+  onUpdateCategory: (oldName: string, newCategory: Category) => void;
   onDeleteCategory: (name: string) => void;
+  onNavigateToSecurity: () => void;
+  autoLockTimeout: number;
+  onSetAutoLockTimeout: (timeout: number) => void;
 }
 
 // Icons
@@ -23,14 +28,46 @@ const DeleteIcon = () => <svg xmlns="http://www.w3.org/2000/svg" height="20px" v
 const SaveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>;
 const CancelIcon = () => <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>;
 
-const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack, entries, persistEntries, categories, onAddCategory, onUpdateCategory, onDeleteCategory }) => {
+const SettingsScreen: React.FC<SettingsScreenProps> = ({ 
+    onBack, 
+    entries, 
+    persistEntries, 
+    categories, 
+    onAddCategory, 
+    onUpdateCategory, 
+    onDeleteCategory, 
+    onNavigateToSecurity,
+    autoLockTimeout,
+    onSetAutoLockTimeout,
+}) => {
   const { theme, setTheme, mode, setMode } = useTheme();
   const importFileRef = useRef<HTMLInputElement>(null);
   
   // Category management state
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryColor, setNewCategoryColor] = useState<string>(CATEGORY_COLORS[0]);
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState('');
+  const [editingColor, setEditingColor] = useState<string>('');
+
+  const applyThemeStyles = useCallback((themeName: string) => {
+    const themeToApply = themes.find(t => t.name === themeName);
+    if (themeToApply) {
+        const palette = themeToApply[mode];
+        for (const key in palette) {
+            document.documentElement.style.setProperty(key, palette[key as keyof typeof palette]);
+        }
+    }
+  }, [mode]);
+
+  const handleThemeHoverStart = (previewThemeName: string) => {
+    applyThemeStyles(previewThemeName);
+  };
+
+  const handleThemeHoverEnd = useCallback(() => {
+    applyThemeStyles(theme);
+  }, [theme, applyThemeStyles]);
+
 
   const handleExport = () => {
     if (entries.length === 0) {
@@ -97,25 +134,27 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack, entries, persis
     e.preventDefault();
     const trimmedName = newCategoryName.trim();
     if (trimmedName) {
-        onAddCategory(trimmedName);
+        onAddCategory({ name: trimmedName, color: newCategoryColor });
         setNewCategoryName('');
     }
   };
 
-  const handleEditStart = (name: string) => {
-    setEditingCategory(name);
-    setEditingValue(name);
+  const handleEditStart = (category: Category) => {
+    setEditingCategory(category.name);
+    setEditingValue(category.name);
+    setEditingColor(category.color);
   };
   
   const handleEditCancel = () => {
     setEditingCategory(null);
     setEditingValue('');
+    setEditingColor('');
   };
   
   const handleEditSave = () => {
     const trimmedValue = editingValue.trim();
     if (editingCategory && trimmedValue) {
-        onUpdateCategory(editingCategory, trimmedValue);
+        onUpdateCategory(editingCategory, { name: trimmedValue, color: editingColor });
         handleEditCancel();
     }
   };
@@ -124,6 +163,12 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack, entries, persis
     onDeleteCategory(name);
   };
 
+  const glassPanelStyle: React.CSSProperties = {
+    color: 'var(--md-sys-color-on-surface)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px'
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -134,7 +179,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack, entries, persis
             <h2 className="headline-medium">Settings</h2>
         </div>
 
-        <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <section className="illumina-panel" style={glassPanelStyle}>
             <h3 className="title-large">Appearance</h3>
             <div>
                 <h4 className="title-medium" style={{marginBottom: '12px'}}>Mode</h4>
@@ -160,14 +205,20 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack, entries, persis
                 <h4 className="title-medium" style={{marginBottom: '16px'}}>Theme</h4>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '16px' }}>
                     {themes.map(t => (
-                        <div key={t.name} onClick={() => setTheme(t.name)} style={{ cursor: 'pointer', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                        <div 
+                            key={t.name} 
+                            onClick={() => setTheme(t.name)} 
+                            onMouseEnter={() => handleThemeHoverStart(t.name)}
+                            onMouseLeave={handleThemeHoverEnd}
+                            style={{ cursor: 'pointer', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
+                        >
                             <div style={{
                                 width: '64px',
                                 height: '64px',
                                 borderRadius: '50%',
                                 backgroundColor: t[mode]['--md-sys-color-primary'],
                                 border: theme === t.name ? `4px solid var(--md-sys-color-primary)` : `4px solid var(--md-sys-color-outline)`,
-                                transition: 'border-color 0.2s'
+                                transition: 'border-color 0.2s, background-color 0.2s'
                             }}></div>
                             <p className="body-small">{t.name}</p>
                         </div>
@@ -176,25 +227,47 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack, entries, persis
             </div>
         </section>
 
-        <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <section className="illumina-panel" style={glassPanelStyle}>
             <h3 className="title-large">Category Management</h3>
-             <form onSubmit={handleAddCategorySubmit} style={{ display: 'flex', gap: '8px' }}>
-                <div style={{ flexGrow: 1}}>
-                    <Input 
-                        id="new-category"
-                        label="New Category Name"
-                        value={newCategoryName}
-                        onChange={e => setNewCategoryName(e.target.value)}
-                    />
+             <form onSubmit={handleAddCategorySubmit}>
+                 <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                    <div style={{ flexGrow: 1}}>
+                        <Input 
+                            id="new-category"
+                            label="New Category Name"
+                            value={newCategoryName}
+                            onChange={e => setNewCategoryName(e.target.value)}
+                        />
+                    </div>
+                    <Button type="submit">Add</Button>
                 </div>
-                <Button type="submit">Add</Button>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {CATEGORY_COLORS.map(color => (
+                        <button
+                            type="button"
+                            key={color}
+                            onClick={() => setNewCategoryColor(color)}
+                            aria-label={`Select color ${color}`}
+                            style={{
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '50%',
+                                backgroundColor: color,
+                                border: newCategoryColor === color ? '2px solid var(--md-sys-color-primary)' : '2px solid var(--md-sys-color-outline)',
+                                cursor: 'pointer',
+                                padding: 0,
+                                outlineOffset: '2px',
+                            }}
+                        />
+                    ))}
+                </div>
             </form>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {categories.map(cat => (
-                    <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', backgroundColor: 'var(--md-sys-color-surface-variant)', borderRadius: 'var(--md-border-radius-sm)'}}>
-                        {editingCategory === cat ? (
+                    <div key={cat.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', backgroundColor: 'var(--md-sys-color-surface-variant)', borderRadius: 'var(--md-border-radius-sm)'}}>
+                        {editingCategory === cat.name ? (
                             <>
-                                <div style={{flexGrow: 1}}>
+                                <div style={{flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '12px'}}>
                                      <input 
                                         type="text"
                                         value={editingValue}
@@ -203,23 +276,78 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack, entries, persis
                                         onKeyDown={(e) => e.key === 'Enter' && handleEditSave()}
                                         style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', borderBottom: '2px solid var(--md-sys-color-primary)', color: 'var(--md-sys-color-on-surface-variant)', fontFamily: 'inherit', fontSize: '16px', padding: '4px' }}
                                     />
+                                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                        {CATEGORY_COLORS.map(color => (
+                                            <button
+                                                type="button"
+                                                key={color}
+                                                onClick={() => setEditingColor(color)}
+                                                aria-label={`Select color ${color}`}
+                                                style={{
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: color,
+                                                    border: editingColor === color ? '2px solid var(--md-sys-color-primary)' : '2px solid var(--md-sys-color-outline)',
+                                                    cursor: 'pointer',
+                                                    padding: 0
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
                                 </div>
                                 <IconButton onClick={handleEditSave} aria-label="Save category name"><SaveIcon /></IconButton>
                                 <IconButton onClick={handleEditCancel} aria-label="Cancel editing"><CancelIcon /></IconButton>
                             </>
                         ) : (
                             <>
-                                <span className="body-large" style={{ flexGrow: 1, color: 'var(--md-sys-color-on-surface-variant)' }}>{cat}</span>
-                                <IconButton onClick={() => handleEditStart(cat)} aria-label={`Edit category ${cat}`}><EditIcon /></IconButton>
-                                <IconButton onClick={() => handleDelete(cat)} aria-label={`Delete category ${cat}`} color="var(--md-sys-color-error)"><DeleteIcon /></IconButton>
+                                <div style={{width: '20px', height: '20px', borderRadius: '50%', backgroundColor: cat.color, flexShrink: 0}} />
+                                <span className="body-large" style={{ flexGrow: 1, color: 'var(--md-sys-color-on-surface-variant)' }}>{cat.name}</span>
+                                <IconButton onClick={() => handleEditStart(cat)} aria-label={`Edit category ${cat.name}`}><EditIcon /></IconButton>
+                                <IconButton onClick={() => handleDelete(cat.name)} aria-label={`Delete category ${cat.name}`} color="var(--md-sys-color-error)"><DeleteIcon /></IconButton>
                             </>
                         )}
                     </div>
                 ))}
             </div>
         </section>
+        
+        <section className="illumina-panel" style={glassPanelStyle}>
+            <h3 className="title-large">Security</h3>
+            <div>
+                <h4 className="title-medium" style={{marginBottom: '12px'}}>Auto-Lock Vault</h4>
+                <p className="body-medium" style={{color: 'var(--md-sys-color-on-surface-variant)', marginTop: '-8px'}}>
+                    Automatically lock the vault after a period of inactivity.
+                </p>
+                <div style={{ maxWidth: '300px' }}>
+                    <Select
+                        label="Inactivity Timeout"
+                        value={String(autoLockTimeout)}
+                        onChange={(val) => onSetAutoLockTimeout(parseInt(val, 10))}
+                        options={[
+                            { value: '0', label: 'Never' },
+                            { value: '1', label: '1 Minute' },
+                            { value: '5', label: '5 Minutes' },
+                            { value: '15', label: '15 Minutes' },
+                            { value: '30', label: '30 Minutes' },
+                            { value: '60', label: '1 Hour' },
+                        ]}
+                    />
+                </div>
+            </div>
+            <div>
+                 <p className="body-medium" style={{color: 'var(--md-sys-color-on-surface-variant)', marginTop: 0}}>
+                    Review our best practices for keeping your master password and vault data safe.
+                </p>
+                <div style={{ display: 'flex' }}>
+                    <Button onClick={onNavigateToSecurity} variant="tonal">
+                        View Security Best Practices
+                    </Button>
+                </div>
+            </div>
+        </section>
 
-        <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <section className="illumina-panel" style={glassPanelStyle}>
             <h3 className="title-large">Data Management</h3>
             <p className="body-medium" style={{color: 'var(--md-sys-color-on-surface-variant)', marginTop: '-8px'}}>
                 Import or export your vault. Exports are unencrypted, so keep them safe.

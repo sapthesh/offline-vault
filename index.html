@@ -52,9 +52,83 @@
         --md-border-radius-full: 9999px;
       }
 
+      .background-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        overflow: hidden;
+        background-color: var(--md-sys-color-background);
+        background-image: radial-gradient(rgba(var(--md-sys-color-on-background-rgb), 0.08) 1px, transparent 1px);
+        background-size: 2rem 2rem;
+        transition: background-color 0.3s;
+      }
+
+      .blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(180px);
+        opacity: 0.25;
+        transition: background 0.5s;
+      }
+
+      .color-primary {
+        background: var(--md-sys-color-primary);
+        width: 50vmax;
+        height: 50vmax;
+        animation: move-blob-1 30s infinite alternate;
+      }
+
+      .color-secondary {
+        background: var(--md-sys-color-secondary);
+        width: 40vmax;
+        height: 40vmax;
+        animation: move-blob-2 35s infinite alternate;
+      }
+
+      .color-tertiary {
+        background: var(--md-sys-color-tertiary);
+        width: 30vmax;
+        height: 30vmax;
+        animation: move-blob-3 28s infinite alternate;
+      }
+
+      @keyframes move-blob-1 {
+        from { transform: translate(-60%, -40%) rotate(0deg) scale(1); }
+        to { transform: translate(60%, 40%) rotate(180deg) scale(1.2); }
+      }
+
+      @keyframes move-blob-2 {
+        from { transform: translate(70%, 120%) rotate(0deg) scale(1.2); }
+        to { transform: translate(-30%, -50%) rotate(-180deg) scale(0.9); }
+      }
+
+      @keyframes move-blob-3 {
+        from { transform: translate(120%, 80%) rotate(0deg) scale(0.9); }
+        to { transform: translate(-10%, 120%) rotate(90deg) scale(1.1); }
+      }
+      
+      @keyframes modal-scale-in {
+        from {
+          opacity: 0;
+          transform: scale(0.95) translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      @keyframes glowing-border-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
       body {
         font-family: 'Roboto', sans-serif;
-        background-color: var(--md-sys-color-background);
+        background-color: transparent;
         color: var(--md-sys-color-on-background);
         margin: 0;
         transition: background-color 0.3s, color 0.3s;
@@ -77,6 +151,44 @@
       .body-large { font-size: 16px; line-height: 24px; font-weight: 400; }
       .body-medium { font-size: 14px; line-height: 20px; font-weight: 400; }
       .body-small { font-size: 12px; line-height: 16px; font-weight: 400; }
+
+      /* Illumina Panel Style */
+      .illumina-panel {
+        position: relative;
+        padding: 24px;
+        border-radius: var(--md-border-radius-lg);
+        background-color: var(--md-sys-color-surface);
+        background-image: linear-gradient(rgba(var(--md-sys-color-primary-rgb), 0.05), rgba(var(--md-sys-color-primary-rgb), 0.05));
+        box-shadow: 0 10px 30px -5px rgba(0,0,0,0.2), 0 4px 6px -2px rgba(0,0,0,0.1);
+        z-index: 1;
+        overflow: hidden;
+        border: 1px solid rgba(var(--md-sys-color-on-surface-rgb), 0.1);
+        transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+      }
+
+      .illumina-panel::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 150%;
+        height: 150%;
+        z-index: -1;
+        background: conic-gradient(
+          from 0deg,
+          transparent 270deg,
+          var(--md-sys-color-primary) 360deg
+        );
+        animation: glowing-border-spin 4s linear infinite;
+        opacity: 0;
+        transform-origin: center center;
+        transform: translate(-50%, -50%) rotate(0deg);
+        transition: opacity 0.3s ease-out;
+      }
+
+      .illumina-panel:hover::before {
+        opacity: 0.6;
+      }
       
       /* Select Component */
       .select-container {
@@ -158,6 +270,11 @@
   <link rel="stylesheet" href="/index.css">
 </head>
   <body>
+    <div class="background-container">
+      <div class="blob color-primary"></div>
+      <div class="blob color-secondary"></div>
+      <div class="blob color-tertiary"></div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

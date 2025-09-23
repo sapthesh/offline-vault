@@ -15,7 +15,12 @@ export interface EncryptedVault {
   data: string; // Base64 encoded encrypted data
 }
 
+export interface Category {
+  name: string;
+  color: string;
+}
+
 export interface VaultData {
   entries: PasswordEntry[];
-  categories: string[];
+  categories: Category[];
 }

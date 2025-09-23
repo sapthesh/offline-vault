@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import type { PasswordEntry } from '../types';
+import type { PasswordEntry, Category } from '../types';
 import PasswordList from './PasswordList';
 import AddEditEntryModal from './AddEditEntryModal';
 import Button from './common/Button';
@@ -12,7 +12,7 @@ interface VaultScreenProps {
   onAddEntry: (entryData: Omit<PasswordEntry, 'id' | 'lastModified'>) => void;
   onUpdateEntry: (entryData: Omit<PasswordEntry, 'lastModified'>) => void;
   onDeleteEntry: (entry: PasswordEntry) => void;
-  categories: string[];
+  categories: Category[];
 }
 
 type SortBy = 'service' | 'username' | 'lastModified';
@@ -49,16 +49,16 @@ const VaultScreen: React.FC<VaultScreenProps> = ({ onLock, entries, onAddEntry, 
   };
   
   const categoryFilterOptions = useMemo(() => {
-    const allCategories = ['all', 'Uncategorized', ...categories].sort((a,b) => {
-        if(a === 'all' || a === 'Uncategorized') return -1;
-        if(b === 'all' || b === 'Uncategorized') return 1;
-        return a.localeCompare(b);
-    });
-    const uniqueCategories = [...new Set(allCategories)]; // Ensure uniqueness
-    return uniqueCategories.map(cat => ({
-      value: cat,
-      label: cat === 'all' ? 'All Categories' : cat,
+    const sortedCategories = [...categories].sort((a,b) => a.name.localeCompare(b.name));
+    const options = sortedCategories.map(cat => ({
+        value: cat.name,
+        label: cat.name
     }));
+    return [
+        { value: 'all', label: 'All Categories' },
+        { value: 'Uncategorized', label: 'Uncategorized' },
+        ...options
+    ];
   }, [categories]);
 
   const sortedAndFilteredEntries = useMemo(() => {
@@ -112,6 +112,12 @@ const VaultScreen: React.FC<VaultScreenProps> = ({ onLock, entries, onAddEntry, 
         onAddEntry(entryData);
       }
   }, [editingEntry, onAddEntry, onUpdateEntry]);
+  
+  const glassPanelStyle: React.CSSProperties = {
+    textAlign: 'center', 
+    padding: '64px 24px', 
+    color: 'var(--md-sys-color-on-surface)',
+  };
 
   return (
     <div>
@@ -172,7 +178,7 @@ const VaultScreen: React.FC<VaultScreenProps> = ({ onLock, entries, onAddEntry, 
         </div>
       
         {entries.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '64px 24px', backgroundColor: 'var(--md-sys-color-surface-variant)', borderRadius: 'var(--md-border-radius-lg)', border: '1px dashed var(--md-sys-color-outline)'}}>
+            <div className="illumina-panel" style={glassPanelStyle}>
                 <svg xmlns="http://www.w3.org/2000/svg" style={{ margin: '0 auto', color: 'var(--md-sys-color-on-surface-variant)' }} height="48px" viewBox="0 0 24 24" width="48px" fill="currentColor">
                     <path d="M0 0h24v24H0z" fill="none"/><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10zm-8-4h2v2h-2v-2zm-4 0h2v2H8v-2zm8 0h2v2h-2v-2z"/>
                 </svg>
@@ -180,7 +186,7 @@ const VaultScreen: React.FC<VaultScreenProps> = ({ onLock, entries, onAddEntry, 
                 <p className="body-medium" style={{ marginTop: '4px', color: 'var(--md-sys-color-on-surface-variant)' }}>Click "Add Entry" to save your first password.</p>
             </div>
         ) : sortedAndFilteredEntries.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '64px 24px', backgroundColor: 'var(--md-sys-color-surface-variant)', borderRadius: 'var(--md-border-radius-lg)', border: '1px dashed var(--md-sys-color-outline)'}}>
+            <div className="illumina-panel" style={glassPanelStyle}>
                 <svg xmlns="http://www.w3.org/2000/svg" style={{ margin: '0 auto', color: 'var(--md-sys-color-on-surface-variant)' }} height="48px" viewBox="0 0 24 24" width="48px" fill="currentColor">
                     <path d="M0 0h24v24H0z" fill="none"/>
                     <path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
@@ -189,7 +195,7 @@ const VaultScreen: React.FC<VaultScreenProps> = ({ onLock, entries, onAddEntry, 
                 <p className="body-medium" style={{ marginTop: '4px', color: 'var(--md-sys-color-on-surface-variant)' }}>Your search for "{searchQuery}" did not match any entries.</p>
             </div>
         ) : (
-            <PasswordList entries={sortedAndFilteredEntries} onEdit={openEditModal} onDelete={onDeleteEntry} />
+            <PasswordList entries={sortedAndFilteredEntries} onEdit={openEditModal} onDelete={onDeleteEntry} categories={categories} />
         )}
       
         {isModalOpen && (

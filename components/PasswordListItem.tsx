@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import type { PasswordEntry } from '../types';
+import type { PasswordEntry, Category } from '../types';
 import IconButton from './common/IconButton';
+import { getContrastYIQ } from '../utils/colorUtils';
 
 interface PasswordListItemProps {
   entry: PasswordEntry;
   onEdit: (entry: PasswordEntry) => void;
   onDelete: (entry: PasswordEntry) => void;
+  categories: Category[];
 }
 
 // Icons
@@ -18,7 +20,7 @@ const NotesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" height="20px" vi
 const FallbackIcon = () => <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-1 14H5c-.55 0-1-.45-1-1V7c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v10c0 .55-.45 1-1 1z"/></svg>;
 
 
-const PasswordListItem: React.FC<PasswordListItemProps> = ({ entry, onEdit, onDelete }) => {
+const PasswordListItem: React.FC<PasswordListItemProps> = ({ entry, onEdit, onDelete, categories }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isNotesVisible, setIsNotesVisible] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState('');
@@ -37,25 +39,41 @@ const PasswordListItem: React.FC<PasswordListItemProps> = ({ entry, onEdit, onDe
     year: 'numeric', month: 'short', day: 'numeric'
   });
 
-  return (
-    <li style={{
-      backgroundColor: 'var(--md-sys-color-surface-container-high, var(--md-sys-color-surface-variant))',
-      borderRadius: 'var(--md-border-radius-lg)',
+  const categoryName = entry.category || 'Uncategorized';
+  let categoryColor = 'var(--md-sys-color-tertiary-container)';
+  let onCategoryColor = 'var(--md-sys-color-on-tertiary-container)';
+
+  if (categoryName !== 'Uncategorized') {
+    const categoryData = categories.find(c => c.name === categoryName);
+    if (categoryData) {
+        categoryColor = categoryData.color;
+        onCategoryColor = getContrastYIQ(categoryData.color);
+    }
+  }
+
+  const listItemStyle: React.CSSProperties = {
+      color: 'var(--md-sys-color-on-surface)',
       padding: '16px',
       display: 'flex',
       flexDirection: 'column',
-      gap: '12px'
-    }}>
+      gap: '12px',
+  };
+
+  return (
+    <li 
+      className="illumina-panel"
+      style={listItemStyle}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         {entry.favicon ? (
           <img src={entry.favicon} alt={`${entry.service} favicon`} width="32" height="32" style={{ borderRadius: 'var(--md-border-radius-sm)', flexShrink: 0, objectFit: 'contain' }} />
         ) : (
-          <div style={{ width: '32px', height: '32px', borderRadius: 'var(--md-border-radius-sm)', backgroundColor: 'var(--md-sys-color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--md-sys-color-primary)', flexShrink: 0 }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: 'var(--md-border-radius-sm)', backgroundColor: 'var(--md-sys-color-surface-variant)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--md-sys-color-primary)', flexShrink: 0 }}>
             <FallbackIcon />
           </div>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h3 className="title-medium" style={{ margin: 0, color: 'var(--md-sys-color-on-surface-variant)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <h3 className="title-medium" style={{ margin: 0, color: 'var(--md-sys-color-on-surface)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {entry.service}
           </h3>
           <p className="body-medium" style={{ margin: '2px 0 0', color: 'var(--md-sys-color-on-surface-variant)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -78,7 +96,7 @@ const PasswordListItem: React.FC<PasswordListItemProps> = ({ entry, onEdit, onDe
       </div>
       
       <div style={{
-          backgroundColor: 'var(--md-sys-color-surface)',
+          backgroundColor: 'var(--md-sys-color-surface-variant)',
           borderRadius: 'var(--md-border-radius-md)',
           padding: '8px 12px',
           display: 'flex',
@@ -101,7 +119,7 @@ const PasswordListItem: React.FC<PasswordListItemProps> = ({ entry, onEdit, onDe
 
       {isNotesVisible && entry.notes && (
         <div style={{
-            backgroundColor: 'var(--md-sys-color-surface)',
+            backgroundColor: 'var(--md-sys-color-surface-variant)',
             borderRadius: 'var(--md-border-radius-md)',
             padding: '12px 16px',
         }}>
@@ -123,7 +141,9 @@ const PasswordListItem: React.FC<PasswordListItemProps> = ({ entry, onEdit, onDe
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap'}}>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {entry.category && entry.category !== 'Uncategorized' && (
-             <span className="category-chip">{entry.category}</span>
+             <span className="category-chip" style={{ backgroundColor: categoryColor, color: onCategoryColor }}>
+                {entry.category}
+            </span>
           )}
           <button
               onClick={() => handleCopy(entry.username, 'Username')}

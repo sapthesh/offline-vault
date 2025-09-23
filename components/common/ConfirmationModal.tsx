@@ -46,13 +46,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       aria-labelledby="confirmation-title"
     >
       <div
+        className="illumina-panel"
         style={{
-          backgroundColor: 'var(--md-sys-color-surface)',
-          borderRadius: 'var(--md-border-radius-lg)',
-          boxShadow: 'var(--md-elevation-3)',
           width: '100%',
           maxWidth: '400px',
-          padding: '24px',
+          color: 'var(--md-sys-color-on-surface)',
+          animation: 'modal-scale-in 0.3s ease-out',
         }}
       >
         <h2 id="confirmation-title" className="title-large" style={{ marginTop: 0, marginBottom: '16px' }}>{title}</h2>

@@ -21,7 +21,7 @@ const PasswordGenerator: React.FC<PasswordGeneratorProps> = ({ onPasswordGenerat
   return (
     <div style={{
       padding: '16px',
-      backgroundColor: 'var(--md-sys-color-surface-container-low, var(--md-sys-color-surface-variant))', // Fallback
+      backgroundColor: 'var(--md-sys-color-surface-variant)',
       borderRadius: 'var(--md-border-radius-lg)',
       display: 'flex',
       flexDirection: 'column',

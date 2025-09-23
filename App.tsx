@@ -2,27 +2,29 @@ import React, { useState, useCallback, useEffect } from 'react';
 import LoginScreen from './components/LoginScreen';
 import VaultScreen from './components/VaultScreen';
 import SettingsScreen from './components/SettingsScreen';
+import SecurityScreen from './components/SecurityScreen';
 import IconButton from './components/common/IconButton';
 import { vaultExists as checkVaultExists, loadVault, saveVault } from './services/storageService';
 import { decryptData, encryptData } from './services/cryptoService';
-import type { PasswordEntry, VaultData } from './types';
+import type { PasswordEntry, VaultData, Category } from './types';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ConfirmationModal from './components/common/ConfirmationModal';
+import { CATEGORY_COLORS } from './constants';
 
 const SettingsIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor">
-        <path d="M0 0h24v24H0V0z" fill="none"/><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61-.25-1.17-.59-1.69-.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12-.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+        <path d="M0 0h24v24H0V0z" fill="none"/><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61-.25-1.17-.59-1.69-.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12-.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
     </svg>
 );
 
 const AppContent: React.FC = () => {
   const [encryptionKey, setEncryptionKey] = useState<CryptoKey | null>(null);
   const [vaultExists, setVaultExists] = useState<boolean>(checkVaultExists());
-  const [currentView, setCurrentView] = useState<'vault' | 'settings'>('vault');
+  const [currentView, setCurrentView] = useState<'vault' | 'settings' | 'security'>('vault');
   
   // State for vault data
   const [entries, setEntries] = useState<PasswordEntry[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -32,6 +34,16 @@ const AppContent: React.FC = () => {
   const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
+  // State for auto-lock
+  const [autoLockTimeout, setAutoLockTimeout] = useState<number>(() => {
+    const savedTimeout = localStorage.getItem('auto-lock-timeout');
+    return savedTimeout ? parseInt(savedTimeout, 10) : 15; // Default to 15 minutes
+  });
+
+  useEffect(() => {
+    localStorage.setItem('auto-lock-timeout', String(autoLockTimeout));
+  }, [autoLockTimeout]);
+
   const handleLock = useCallback(() => {
     setEncryptionKey(null);
     setCurrentView('vault'); // Reset view on lock
@@ -40,9 +52,35 @@ const AppContent: React.FC = () => {
     setError('');
   }, []);
 
+  // Auto-lock timer effect
+  useEffect(() => {
+    if (!encryptionKey || autoLockTimeout === 0) {
+      return;
+    }
+
+    let inactivityTimer: number;
+
+    const resetTimer = () => {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = window.setTimeout(() => {
+        handleLock();
+      }, autoLockTimeout * 60 * 1000); // Convert minutes to milliseconds
+    };
+
+    const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+    activityEvents.forEach(event => window.addEventListener(event, resetTimer));
+    
+    resetTimer(); // Start the timer initially
+
+    return () => {
+      clearTimeout(inactivityTimer);
+      activityEvents.forEach(event => window.removeEventListener(event, resetTimer));
+    };
+  }, [encryptionKey, autoLockTimeout, handleLock]);
+
   const persistVault = useCallback(async (
     updatedEntries: PasswordEntry[], 
-    updatedCategories: string[], 
+    updatedCategories: Category[], 
     key: CryptoKey | null = encryptionKey
   ) => {
     if (!key) {
@@ -75,18 +113,32 @@ const AppContent: React.FC = () => {
         let parsedData = JSON.parse(decryptedJson);
 
         let currentEntries: PasswordEntry[];
-        let currentCategories: string[];
+        let currentCategories: Category[];
         let needsResaving = false;
         
         // Check for old format (array of entries) vs new format (object)
         if (Array.isArray(parsedData)) {
             needsResaving = true;
             currentEntries = parsedData;
-            const derivedCategories = [...new Set(currentEntries.map(e => e.category).filter(Boolean).filter(c => c !== 'Uncategorized'))].sort();
-            currentCategories = derivedCategories as string[];
+            const derivedCategoryNames = [...new Set(currentEntries.map(e => e.category).filter(Boolean).filter(c => c !== 'Uncategorized'))].sort();
+             // Migrate derived string categories to Category objects
+            currentCategories = derivedCategoryNames.map((name, index) => ({
+                name,
+                color: CATEGORY_COLORS[index % CATEGORY_COLORS.length]
+            }));
         } else {
             currentEntries = parsedData.entries || [];
-            currentCategories = parsedData.categories || [];
+            // Migration logic for categories: if they are strings, convert to objects
+            if (!parsedData.categories || parsedData.categories.length === 0 || typeof parsedData.categories[0] === 'string') {
+                needsResaving = true;
+                const oldCategories: string[] = parsedData.categories || [];
+                currentCategories = oldCategories.map((name, index) => ({
+                    name,
+                    color: CATEGORY_COLORS[index % CATEGORY_COLORS.length]
+                }));
+            } else {
+                currentCategories = parsedData.categories || [];
+            }
         }
         
         // Migration logic for individual entries
@@ -168,18 +220,21 @@ const AppContent: React.FC = () => {
 
 
   // --- Category Handlers ---
-  const handleAddCategory = (name: string) => {
-    if (name && !categories.includes(name) && name.toLowerCase() !== 'uncategorized') {
-      const updatedCategories = [...categories, name].sort();
+  const handleAddCategory = (category: Category) => {
+    if (category.name && !categories.some(c => c.name === category.name) && category.name.toLowerCase() !== 'uncategorized') {
+      const updatedCategories = [...categories, category].sort((a,b) => a.name.localeCompare(b.name));
       persistVault(entries, updatedCategories);
     }
   };
 
-  const handleUpdateCategory = (oldName: string, newName: string) => {
-    if (newName && oldName !== newName && !categories.includes(newName)) {
-      const updatedCategories = categories.map(c => c === oldName ? newName : c).sort();
-      const updatedEntries = entries.map(e => e.category === oldName ? { ...e, category: newName } : e);
-      persistVault(updatedEntries, updatedCategories);
+  const handleUpdateCategory = (oldName: string, newCategory: Category) => {
+     const isNameChanged = oldName !== newCategory.name;
+    const isNameDuplicate = categories.some(c => c.name === newCategory.name);
+
+    if (newCategory.name && (!isNameChanged || !isNameDuplicate)) {
+        const updatedCategories = categories.map(c => c.name === oldName ? newCategory : c).sort((a, b) => a.name.localeCompare(b.name));
+        const updatedEntries = isNameChanged ? entries.map(e => e.category === oldName ? { ...e, category: newCategory.name } : e) : entries;
+        persistVault(updatedEntries, updatedCategories);
     }
   };
   
@@ -190,7 +245,7 @@ const AppContent: React.FC = () => {
 
   const confirmDeleteCategory = useCallback(() => {
     if (!categoryToDelete) return;
-    const updatedCategories = categories.filter(c => c !== categoryToDelete);
+    const updatedCategories = categories.filter(c => c.name !== categoryToDelete);
     const updatedEntries = entries.map(e => e.category === categoryToDelete ? { ...e, category: 'Uncategorized' } : e);
     persistVault(updatedEntries, updatedCategories);
     setIsDeleteCategoryModalOpen(false);
@@ -212,6 +267,11 @@ const AppContent: React.FC = () => {
     if (error) {
       return <div style={{textAlign: 'center', padding: '32px', color: 'var(--md-sys-color-error)'}}>{error}</div>;
     }
+    if (currentView === 'security') {
+      return (
+        <SecurityScreen onBack={() => setCurrentView('settings')} />
+      );
+    }
     if (currentView === 'settings') {
       return (
         <SettingsScreen 
@@ -222,6 +282,9 @@ const AppContent: React.FC = () => {
             onAddCategory={handleAddCategory}
             onUpdateCategory={handleUpdateCategory}
             onDeleteCategory={handleDeleteCategoryRequest}
+            onNavigateToSecurity={() => setCurrentView('security')}
+            autoLockTimeout={autoLockTimeout}
+            onSetAutoLockTimeout={setAutoLockTimeout}
         />
       );
     }
@@ -240,12 +303,22 @@ const AppContent: React.FC = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: 'var(--md-sys-color-background)',
+      backgroundColor: 'transparent',
       color: 'var(--md-sys-color-on-background)',
       transition: 'background-color 0.3s, color 0.3s'
     }}>
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '16px' }}>
-        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px', padding: '8px 0' }}>
+        <header 
+          className="illumina-panel"
+          style={{
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between', 
+            marginBottom: '32px', 
+            padding: '12px 24px',
+            color: 'var(--md-sys-color-on-surface)',
+          }}
+        >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                  <svg xmlns="http://www.w3.org/2000/svg" height="32px" viewBox="0 0 24 24" width="32px" fill="var(--md-sys-color-primary)">
                     <path d="M0 0h24v24H0V0z" fill="none"/>
@@ -253,7 +326,7 @@ const AppContent: React.FC = () => {
                 </svg>
                 <h1 className="title-large" style={{ color: 'var(--md-sys-color-on-surface)', margin: 0}}>Offline Vault</h1>
             </div>
-            {encryptionKey && (
+            {encryptionKey && currentView !== 'security' && (
               <IconButton onClick={() => setCurrentView(currentView === 'vault' ? 'settings' : 'vault')} aria-label="Open settings">
                   <SettingsIcon />
               </IconButton>
@@ -284,6 +357,9 @@ const AppContent: React.FC = () => {
         </ConfirmationModal>
 
         <footer style={{ textAlign: 'center', marginTop: '48px', color: 'var(--md-sys-color-on-surface-variant)'}} className="body-small">
+            <p style={{ color: 'var(--md-sys-color-error)', fontWeight: '500' }}>
+              Warning: The Master Password is NOT recoverable. Please store it in a safe, offline location.
+            </p>
             <p>All data is encrypted and stored locally in your browser.</p>
             <p>&copy; {new Date().getFullYear()} Offline Vault. All rights reserved.</p>
         </footer>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import type { PasswordEntry } from '../types';
+import type { PasswordEntry, Category } from '../types';
 import Button from './common/Button';
 import Input from './common/Input';
 import Textarea from './common/Textarea';
@@ -11,7 +11,7 @@ interface AddEditEntryModalProps {
   onClose: () => void;
   onSave: (entry: Omit<PasswordEntry, 'id' | 'lastModified'>) => void;
   entry: PasswordEntry | null;
-  existingCategories?: string[];
+  existingCategories?: Category[];
 }
 
 const AddEditEntryModal: React.FC<AddEditEntryModalProps> = ({ isOpen, onClose, onSave, entry, existingCategories = [] }) => {
@@ -121,16 +121,15 @@ const AddEditEntryModal: React.FC<AddEditEntryModalProps> = ({ isOpen, onClose, 
             zIndex: 50
         }}
     >
-      <div 
+      <div
+        className="illumina-panel"
         style={{
-            backgroundColor: 'var(--md-sys-color-surface)',
-            borderRadius: 'var(--md-border-radius-lg)',
-            boxShadow: 'var(--md-elevation-3)',
             width: '100%',
             maxWidth: '500px',
-            padding: '24px',
             maxHeight: '90vh',
-            overflowY: 'auto'
+            overflowY: 'auto',
+            color: 'var(--md-sys-color-on-surface)',
+            animation: 'modal-scale-in 0.3s ease-out',
         }}
       >
         <div style={{ marginBottom: '16px' }}>
@@ -174,7 +173,7 @@ const AddEditEntryModal: React.FC<AddEditEntryModalProps> = ({ isOpen, onClose, 
                     autoComplete="off"
                 />
                 <datalist id="category-suggestions">
-                    {existingCategories.map(cat => <option key={cat} value={cat} />)}
+                    {existingCategories.map(cat => <option key={cat.name} value={cat.name} />)}
                 </datalist>
                 <div>
                   <Input 

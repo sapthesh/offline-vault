@@ -12,6 +12,13 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const hexToRgb = (hex: string): string | null => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+        ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
+        : null;
+};
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('app-theme') || 'Indigo';
@@ -26,7 +33,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const palette = selectedTheme[mode];
     
     for (const key in palette) {
-      document.documentElement.style.setProperty(key, palette[key as keyof typeof palette]);
+        const cssVarName = key as keyof typeof palette;
+        const hexValue = palette[cssVarName];
+        document.documentElement.style.setProperty(cssVarName, hexValue);
+
+        // Set RGB version for transparency effects
+        const rgbValue = hexToRgb(hexValue);
+        if (rgbValue) {
+            document.documentElement.style.setProperty(`${cssVarName}-rgb`, rgbValue);
+        }
     }
   }, [theme, mode]);
 
