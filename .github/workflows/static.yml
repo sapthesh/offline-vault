@@ -33,14 +33,14 @@ jobs:
           node-version: '20' # Specify a recent Node.js version
           cache: 'npm' # Cache dependencies for faster builds
       - name: Install dependencies
-        run: npm ci
+        run: npm install # CHANGED: Using 'npm install' to handle missing lock file
       - name: Build project
         run: npm run build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           # The path to your Vite build output directory
-          path: './dist' 
+          path: './dist'
 
   # Job to deploy the artifact from the build job
   deploy:
