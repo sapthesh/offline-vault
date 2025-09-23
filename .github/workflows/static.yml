@@ -1,4 +1,4 @@
-# Separate workflow for building and deploying a Vite project to GitHub Pages
+# Separate workflow for building and deploying a Vite project to GitHub Pages 
 name: Deploy project to Pages
 
 on:
