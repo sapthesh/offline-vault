@@ -31,9 +31,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20' # Specify a recent Node.js version
-          cache: 'npm' # Cache dependencies for faster builds
+          # IMPORTANT: The 'cache' property was removed for the initial run
       - name: Install dependencies
-        run: npm install # CHANGED: Uses 'npm install' to generate a lock file if one does not exist
+        run: npm install # Uses 'npm install' to generate a lock file
       - name: Build project
         run: npm run build
       - name: Upload artifact
