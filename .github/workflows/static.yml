@@ -1,4 +1,4 @@
-# Separate workflow for building and deploying a Vite project to GitHub Pages 
+# Separate workflow for building and deploying a Vite project to GitHub Pages
 name: Deploy project to Pages
 
 on:
@@ -33,7 +33,7 @@ jobs:
           node-version: '20' # Specify a recent Node.js version
           cache: 'npm' # Cache dependencies for faster builds
       - name: Install dependencies
-        run: npm install # CHANGED: Using 'npm install' to handle missing lock file
+        run: npm install # CHANGED: Uses 'npm install' to generate a lock file if one does not exist
       - name: Build project
         run: npm run build
       - name: Upload artifact
