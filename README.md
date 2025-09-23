@@ -1,6 +1,7 @@
 
 <div align="center">
-  <h1 align="center">✨ Offline Vault: A Secure, Browser-Based Password Manager ✨</h1>
+  <h1>✨ Offline Vault ✨</h1>
+  <h2>A Secure, Browser-Based Password Manager</h2>
 </div>
 
 <div align="center">
