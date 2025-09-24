@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 import React, { useState, useRef, useEffect, useId } from 'react';
 
 interface SelectOption {

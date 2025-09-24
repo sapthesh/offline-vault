@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 import React, { useState, useRef, useEffect } from 'react';
 import { deriveMasterKey, encryptData, decryptData } from '../services/cryptoService';
 import { saveVault, loadVault } from '../services/storageService';
@@ -5,6 +6,7 @@ import Button from './common/Button';
 import Input from './common/Input';
 import InfoModal from './common/InfoModal';
 import SecurityBestPractices from './common/SecurityBestPractices';
+import ConfirmationModal from './common/ConfirmationModal';
 
 interface LoginScreenProps {
   onUnlock: (key: CryptoKey) => void;
@@ -18,7 +20,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onUnlock, vaultExists, onVaul
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
-  
+  const [isCreateConfirmModalOpen, setIsCreateConfirmModalOpen] = useState(false);
+
   const passwordInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -52,16 +55,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onUnlock, vaultExists, onVaul
     }
   };
 
-  const handleCreateVault = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password.length < 8) {
-        setError('Password must be at least 8 characters long.');
-        return;
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
+  const confirmCreateVault = async () => {
+    setIsCreateConfirmModalOpen(false);
     setIsLoading(true);
     setError('');
 
@@ -80,13 +75,27 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onUnlock, vaultExists, onVaul
     }
   };
 
+  const handleCreateVault = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password.length < 8) {
+        setError('Password must be at least 8 characters long.');
+        return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    setError('');
+    setIsCreateConfirmModalOpen(true);
+  };
+
   return (
     <>
       <div 
         className="illumina-panel"
         style={{
           maxWidth: '420px',
-          margin: '64px auto 0 auto',
+          width: '100%',
           color: 'var(--md-sys-color-on-surface)',
         }}
       >
@@ -126,7 +135,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onUnlock, vaultExists, onVaul
       </div>
 
       {!vaultExists && (
-        <div style={{ textAlign: 'center', marginTop: '24px', padding: '0 16px' }}>
+        <div style={{ textAlign: 'center', marginTop: '24px', padding: '0 16px', maxWidth: '420px', width: '100%' }}>
             <p className="body-medium" style={{ margin: '0 0 8px 0', color: 'var(--md-sys-color-on-surface-variant)'}}>
                 🔒 Your master password is the only key to your vault. Make it strong and memorable.
             </p>
@@ -155,6 +164,26 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onUnlock, vaultExists, onVaul
       >
         <SecurityBestPractices />
       </InfoModal>
+      
+      <ConfirmationModal
+        isOpen={isCreateConfirmModalOpen}
+        onClose={() => setIsCreateConfirmModalOpen(false)}
+        onConfirm={confirmCreateVault}
+        title="Confirm Master Password"
+        confirmLabel="I understand, Create Vault"
+        cancelLabel="Cancel"
+        confirmVariant="filled"
+      >
+        <p style={{ color: 'var(--md-sys-color-error)', fontWeight: 'bold' }}>
+          Warning: Your Master Password is NOT recoverable.
+        </p>
+        <p>
+          Please ensure you have saved your master password in a secure, offline location. If you forget it, you will permanently lose access to all your data.
+        </p>
+        <p>
+          This action cannot be undone.
+        </p>
+      </ConfirmationModal>
     </>
   );
 };

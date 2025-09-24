@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

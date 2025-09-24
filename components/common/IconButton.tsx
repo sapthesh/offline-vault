@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 import React from 'react';
 
 interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

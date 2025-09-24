@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 import React, { useState } from 'react';
 import type { PasswordEntry, Category } from '../types';
 import IconButton from './common/IconButton';
@@ -8,6 +9,7 @@ interface PasswordListItemProps {
   onEdit: (entry: PasswordEntry) => void;
   onDelete: (entry: PasswordEntry) => void;
   categories: Category[];
+  index: number;
 }
 
 // Icons
@@ -20,7 +22,7 @@ const NotesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" height="20px" vi
 const FallbackIcon = () => <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-1 14H5c-.55 0-1-.45-1-1V7c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v10c0 .55-.45 1-1 1z"/></svg>;
 
 
-const PasswordListItem: React.FC<PasswordListItemProps> = ({ entry, onEdit, onDelete, categories }) => {
+const PasswordListItem: React.FC<PasswordListItemProps> = ({ entry, onEdit, onDelete, categories, index }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isNotesVisible, setIsNotesVisible] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState('');
@@ -57,6 +59,9 @@ const PasswordListItem: React.FC<PasswordListItemProps> = ({ entry, onEdit, onDe
       display: 'flex',
       flexDirection: 'column',
       gap: '12px',
+      opacity: 0,
+      animation: `fade-slide-in 0.25s ease-out forwards`,
+      animationDelay: `${index * 30}ms`,
   };
 
   return (

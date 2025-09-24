@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 export interface PasswordEntry {
   id: string;
   service: string;

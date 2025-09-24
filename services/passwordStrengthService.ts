@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 export interface PasswordStrength {
   score: number; // 0 to 4, or -1 for empty
   label: string;

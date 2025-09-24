@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 import React from 'react';
 
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {

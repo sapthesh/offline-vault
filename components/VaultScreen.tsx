@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 import React, { useState, useMemo, useCallback } from 'react';
 import type { PasswordEntry, Category } from '../types';
 import PasswordList from './PasswordList';

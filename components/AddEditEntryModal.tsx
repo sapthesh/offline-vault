@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 import React, { useState, useEffect, useCallback } from 'react';
 import type { PasswordEntry, Category } from '../types';
 import Button from './common/Button';
