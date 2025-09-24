@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 // Material 3 Theme Color Palettes
 // Generated from https://m3.material.io/theme-builder
 

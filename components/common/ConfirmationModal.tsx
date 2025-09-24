@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 import React from 'react';
 import Button from './Button';
 
@@ -9,6 +10,7 @@ interface ConfirmationModalProps {
   children: React.ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
+  confirmVariant?: 'filled' | 'tonal' | 'danger';
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -19,6 +21,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   children,
   confirmLabel = 'Delete',
   cancelLabel = 'Cancel',
+  confirmVariant = 'danger',
 }) => {
   if (!isOpen) return null;
   
@@ -62,7 +65,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <Button type="button" variant="tonal" onClick={onClose}>
             {cancelLabel}
           </Button>
-          <Button type="button" variant="danger" onClick={onConfirm}>
+          <Button type="button" variant={confirmVariant} onClick={onConfirm}>
             {confirmLabel}
           </Button>
         </div>

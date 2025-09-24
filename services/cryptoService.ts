@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 import type { EncryptedVault } from '../types';
 
 // --- Helper Functions for Base64/ArrayBuffer ---

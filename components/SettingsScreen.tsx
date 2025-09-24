@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 import React, { useRef, useState, useCallback } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { themes } from '../themes';
@@ -7,6 +8,7 @@ import Input from './common/Input';
 import type { PasswordEntry, Category } from '../types';
 import { CATEGORY_COLORS } from '../constants';
 import Select from './common/Select';
+import ConfirmationModal from './common/ConfirmationModal';
 
 interface SettingsScreenProps {
   onBack: () => void;
@@ -43,6 +45,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const { theme, setTheme, mode, setMode } = useTheme();
   const importFileRef = useRef<HTMLInputElement>(null);
   
+  // State for modals
+  const [isExportConfirmModalOpen, setIsExportConfirmModalOpen] = useState(false);
+
   // Category management state
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryColor, setNewCategoryColor] = useState<string>(CATEGORY_COLORS[0]);
@@ -69,11 +74,15 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
   }, [theme, applyThemeStyles]);
 
 
-  const handleExport = () => {
+  const handleExportRequest = () => {
     if (entries.length === 0) {
         alert("Your vault is empty. Nothing to export.");
         return;
     }
+    setIsExportConfirmModalOpen(true);
+  };
+
+  const confirmExport = () => {
     const dataToExport = JSON.stringify(entries, null, 2);
     const blob = new Blob([dataToExport], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -85,7 +94,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    alert('Vault exported successfully. Keep the downloaded file safe, it is NOT encrypted.');
+    setIsExportConfirmModalOpen(false);
+    alert('Vault exported successfully.');
   };
 
   const handleImportClick = () => {
@@ -355,9 +365,29 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                  <input type="file" accept=".json" ref={importFileRef} onChange={handleFileSelected} style={{ display: 'none' }} aria-hidden="true" />
                  <Button onClick={handleImportClick} variant="tonal">Import from file</Button>
-                 <Button onClick={handleExport} variant="tonal">Export to file</Button>
+                 <Button onClick={handleExportRequest} variant="tonal">Export to file</Button>
             </div>
         </section>
+
+        <ConfirmationModal
+            isOpen={isExportConfirmModalOpen}
+            onClose={() => setIsExportConfirmModalOpen(false)}
+            onConfirm={confirmExport}
+            title="Confirm Vault Export"
+            confirmLabel="Export Unencrypted File"
+            cancelLabel="Cancel"
+            confirmVariant="tonal"
+        >
+            <p style={{ color: 'var(--md-sys-color-error)', fontWeight: 'bold' }}>
+                Warning: The exported file will NOT be encrypted.
+            </p>
+            <p>
+                Anyone with access to this file will be able to read all your saved passwords and notes in plain text.
+            </p>
+            <p>
+                Please ensure you store this file in a secure, offline location, such as an encrypted USB drive.
+            </p>
+        </ConfirmationModal>
     </div>
   );
 };

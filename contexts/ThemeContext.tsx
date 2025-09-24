@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 import React, { createContext, useState, useEffect, useMemo, useContext } from 'react';
 import { themes, Theme } from '../themes';
 
@@ -32,13 +33,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const selectedTheme = themes.find(t => t.name === theme) || themes[0];
     const palette = selectedTheme[mode];
     
-    for (const key in palette) {
-        const cssVarName = key as keyof typeof palette;
-        const hexValue = palette[cssVarName];
-        document.documentElement.style.setProperty(cssVarName, hexValue);
+    // FIX: Cast hexValue to string as Object.entries returns [string, unknown][].
+    // The value is known to be a string from the ColorPalette type definition.
+    for (const [cssVarName, hexValue] of Object.entries(palette)) {
+        document.documentElement.style.setProperty(cssVarName, hexValue as string);
 
         // Set RGB version for transparency effects
-        const rgbValue = hexToRgb(hexValue);
+        const rgbValue = hexToRgb(hexValue as string);
         if (rgbValue) {
             document.documentElement.style.setProperty(`${cssVarName}-rgb`, rgbValue);
         }

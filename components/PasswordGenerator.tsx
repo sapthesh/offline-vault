@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 import React, { useState, useCallback } from 'react';
 import { generatePassword } from '../services/cryptoService';
 import Button from './common/Button';
@@ -40,7 +41,7 @@ const PasswordGenerator: React.FC<PasswordGeneratorProps> = ({ onPasswordGenerat
                 style={{ width: '100%'}}
             />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px 16px' }}>
             <Checkbox label="Uppercase (A-Z)" checked={useUpper} onChange={setUseUpper} />
             <Checkbox label="Numbers (0-9)" checked={useNumbers} onChange={setUseNumbers} />
             <Checkbox label="Symbols (!@#)" checked={useSymbols} onChange={setUseSymbols} />

@@ -1,3 +1,4 @@
+// Copyright github.com/sapthesh
 import React from 'react';
 import IconButton from './common/IconButton';
 import SecurityBestPractices from './common/SecurityBestPractices';
@@ -18,17 +19,12 @@ const SecurityScreen: React.FC<SecurityScreenProps> = ({ onBack }) => {
             </IconButton>
             <h2 className="headline-medium">Security Best Practices</h2>
         </div>
-
-        <div
-            className="illumina-panel"
-            style={{
-                color: 'var(--md-sys-color-on-surface)',
-            }}
-        >
+        <div className="illumina-panel">
             <SecurityBestPractices />
         </div>
     </div>
   );
 };
 
+// FIX: Added default export to resolve import error in App.tsx and completed the component which was truncated.
 export default SecurityScreen;
