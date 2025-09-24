@@ -117,3 +117,4 @@ You are in full control of your data.
 ## 📄 License
 
 This project is licensed under the MIT License.
+<!-- Copyright github.com/sapthesh -->
